@@ -15,6 +15,6 @@ def search_movies(query):
     for movie in data["movies"]:
         if len(movie_results) == 5:
             break
-        if query in movie["title"]:
+        if query.lower() in movie["title"].lower():
             movie_results.append(movie["title"])
     return movie_results
