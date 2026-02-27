@@ -30,12 +30,13 @@ def clean_input(input):
 
 def tokenize(input):
     final_tokens = []
-    tokens = input.split()
     stopwords = get_stopwords()
+    tokens = input.split()
     for token in tokens:
-        if token == "" or token in stopwords:
+        t = clean_input(token)
+        if t == "" or t in stopwords:
             continue
-        final_tokens.append(get_stem(token))
+        final_tokens.append(get_stem(t))
     return final_tokens
 
 
@@ -43,12 +44,12 @@ def search_movies(query):
     movie_results = []
     with open(get_data_file("movies.json"), "r") as f:
         data = json.load(f)
-    query_tokens = tokenize(clean_input(query))
+    query_tokens = tokenize(query)
     for movie in data["movies"]:
         if len(movie_results) == 5:
             break
         found = False
-        movie_tokens = tokenize(clean_input(movie["title"]))
+        movie_tokens = tokenize(movie["title"])
         for query_token in query_tokens:
             for movie_token in movie_tokens:
                 if query_token in movie_token:
