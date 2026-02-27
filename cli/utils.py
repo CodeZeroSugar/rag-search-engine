@@ -1,6 +1,7 @@
 import json
 import string
 from pathlib import Path
+from nltk.stem import PorterStemmer
 
 
 def get_data_file(filename):
@@ -16,6 +17,11 @@ def get_stopwords():
     return lines
 
 
+def get_stem(input):
+    stemmer = PorterStemmer()
+    return stemmer.stem(input)
+
+
 def clean_input(input):
     lower = input.lower()
     trans_table = str.maketrans("", "", string.punctuation)
@@ -29,7 +35,7 @@ def tokenize(input):
     for token in tokens:
         if token == "" or token in stopwords:
             continue
-        final_tokens.append(token)
+        final_tokens.append(get_stem(token))
     return final_tokens
 
 
