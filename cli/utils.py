@@ -3,10 +3,17 @@ import string
 from pathlib import Path
 
 
-def get_movies_path():
+def get_data_file(filename):
     base_dir = Path(__file__).resolve().parent
-    data_path = base_dir.parent / "data" / "movies.json"
+    data_path = base_dir.parent / "data" / filename
     return data_path
+
+
+def get_stopwords():
+    with open(get_data_file("stopwords.txt"), "r") as f:
+        data = f.read()
+    lines = data.splitlines()
+    return lines
 
 
 def clean_input(input):
@@ -18,8 +25,9 @@ def clean_input(input):
 def tokenize(input):
     final_tokens = []
     tokens = input.split()
+    stopwords = get_stopwords()
     for token in tokens:
-        if token == "":
+        if token == "" or token in stopwords:
             continue
         final_tokens.append(token)
     return final_tokens
@@ -27,7 +35,7 @@ def tokenize(input):
 
 def search_movies(query):
     movie_results = []
-    with open(get_movies_path(), "r") as f:
+    with open(get_data_file("movies.json"), "r") as f:
         data = json.load(f)
     query_tokens = tokenize(clean_input(query))
     for movie in data["movies"]:
