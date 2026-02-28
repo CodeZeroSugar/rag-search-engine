@@ -1,6 +1,6 @@
 import json
 import os
-from pickle import dump
+from pickle import dump, load
 from pathlib import Path
 from utils import get_data_file, tokenize
 
@@ -37,7 +37,20 @@ class InvertedIndex:
         base_dir = Path(__file__).resolve().parent
         cache_path = base_dir.parent / "cache"
         cache_path.mkdir(parents=True, exist_ok=True)
-        with open(os.path.join(cache_path, "index.pkl"), "wb") as index:
+        with open(cache_path / "index.pkl", "wb") as index:
             dump(self.index, index)
-        with open(os.path.join(cache_path, "docmap.pkl"), "wb") as docmap:
+        with open(cache_path / "docmap.pkl", "wb") as docmap:
             dump(self.docmap, docmap)
+
+    def load(self):
+        base_dir = Path(__file__).resolve().parent
+        cache_path = base_dir.parent / "cache"
+        index_path = cache_path / "index.pkl"
+        map_path = cache_path / "docmap.pkl"
+        if not index_path.exists() or not map_path.exists():
+            raise FileNotFoundError("Cache file not found")
+        with open(index_path, "rb") as f:
+            index = load(f)
+        with open(map_path, "rb") as f:
+            docmap = load(f)
+        return index, docmap
