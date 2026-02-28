@@ -60,15 +60,3 @@ def search_movies(query):
                 break
 
     return movie_results
-
-
-def bm25_idf_command(term):
-    from indexing import InvertedIndex
-
-    indexer = InvertedIndex()
-    try:
-        indexer.load()
-    except FileNotFoundError:
-        print("Index not found. Please build first.")
-        return
-    return indexer.get_bm25_idf(term)
