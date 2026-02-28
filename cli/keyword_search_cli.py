@@ -3,7 +3,7 @@
 import argparse
 
 from indexing import InvertedIndex
-from utils import search_movies
+from utils import tokenize
 
 
 def main() -> None:
@@ -15,18 +15,34 @@ def main() -> None:
     subparsers.add_parser("build", help="build inverted index")
     args = parser.parse_args()
 
+    indexer = InvertedIndex()
+
     match args.command:
         case "search":
             print(f"Searching for: {args.query}")
-            results = search_movies(args.query)
+            try:
+                indexer.index, indexer.docmap = indexer.load()
+            except FileNotFoundError:
+                print("Index not found. Please build first.")
+                return
+            results = []
+            query_tokens = tokenize(args.query)
+            maxed = False
+            for token in query_tokens:
+                doc_ids = indexer.get_documents(token)
+                for id in doc_ids:
+                    results.append(indexer.docmap[id])
+                    if len(results) == 5:
+                        maxed = True
+                        break
+                if maxed:
+                    break
+
             for i in range(len(results)):
-                print(f"{i + 1}. {results[i]}")
+                print(f"{i + 1}. {results[i]['title']} : {results[i]['id']}")
         case "build":
-            indexer = InvertedIndex()
             indexer.build()
             indexer.save()
-            docs = indexer.get_documents("merida")
-            print(f"First document for token 'merida' = {docs[0]}")
         case _:
             parser.print_help()
 
