@@ -1,10 +1,9 @@
 #!/usr/bin/env python3
 
 import argparse
-import math
 
 from indexing import InvertedIndex
-from utils import tokenize
+from utils import bm25_idf_command, tokenize
 
 
 def main() -> None:
@@ -27,17 +26,30 @@ def main() -> None:
         "term", type=str, help="Term to check inverse document frequency"
     )
 
+    tfidf_parser = subparsers.add_parser(
+        "tfidf", help="Calculate combined frequency score"
+    )
+    tfidf_parser.add_argument("doc_id", type=int, help="Document ID")
+    tfidf_parser.add_argument("term", type=str, help="Term to check frequency for")
+
+    bm25_idf_parser = subparsers.add_parser(
+        "bm25idf", help="Get BM25 IDF score for a given term"
+    )
+    bm25_idf_parser.add_argument(
+        "term", type=str, help="Term to get BM25 IDF score for"
+    )
+
     args = parser.parse_args()
 
     indexer = InvertedIndex()
-    try:
-        indexer.load()
-    except FileNotFoundError:
-        print("Index not found. Please build first.")
-        return
 
     match args.command:
         case "search":
+            try:
+                indexer.load()
+            except FileNotFoundError:
+                print("Index not found. Please build first.")
+                return
             print(f"Searching for: {args.query}")
             results = []
             query_tokens = tokenize(args.query)
@@ -59,17 +71,40 @@ def main() -> None:
             indexer.save()
         case "tf":
             try:
+                indexer.load()
+            except FileNotFoundError:
+                print("Index not found. Please build first.")
+                return
+            try:
                 freq = indexer.get_tf(args.doc_id, args.term)
             except Exception:
                 print("0")
                 return
             print(f"Term frequency for '{args.term}': {freq}")
         case "idf":
-            idf_term = tokenize(args.term)[0]
-            total_docs = len(indexer.docmap)
-            total_match = len(indexer.get_documents(idf_term))
-            idf = math.log((total_docs + 1) / (total_match + 1))
+            try:
+                indexer.load()
+            except FileNotFoundError:
+                print("Index not found. Please build first.")
+                return
+            idf = indexer.get_idf(args.term)
             print(f"Inverse document frequency of '{args.term}': {idf:.2f}")
+        case "tfidf":
+            try:
+                indexer.load()
+            except FileNotFoundError:
+                print("Index not found. Please build first.")
+                return
+            tf_score = indexer.get_tf(args.doc_id, args.term)
+            idf_score = indexer.get_idf(args.term)
+            tfidf_score = tf_score * idf_score
+            print(
+                f"TF-IDF score of '{args.term}' in document '{args.doc_id}': {tfidf_score:.2f}"
+            )
+
+        case "bm25idf":
+            bm25idf = bm25_idf_command(args.term)
+            print(f"BM25 IDF score of '{args.term}': {bm25idf:.2f}")
 
         case _:
             parser.print_help()

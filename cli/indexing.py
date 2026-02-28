@@ -1,5 +1,6 @@
 from collections import Counter
 import json
+import math
 from pickle import dump, load
 from pathlib import Path
 from utils import get_data_file, tokenize
@@ -71,3 +72,22 @@ class InvertedIndex:
         if self.term_frequencies[doc_id].get(token) is None:
             return 0
         return self.term_frequencies[doc_id][token]
+
+    def get_idf(self, term):
+        tokens = tokenize(term)
+        if len(tokens) != 1:
+            raise Exception("get_tf only accepts 1 term")
+        token = tokens[0]
+        total_docs = len(self.docmap)
+        total_match = len(self.get_documents(token))
+        idf = math.log((total_docs + 1) / (total_match + 1))
+        return idf
+
+    def get_bm25_idf(self, term: str) -> float:
+        tokens = tokenize(term)
+        if len(tokens) != 1:
+            raise Exception("get_bm25_idf only accepts 1 term")
+        token = tokens[0]
+        n = len(self.docmap)
+        df = len(self.get_documents(token))
+        return math.log((n - df + 0.5) / (df + 0.5) + 1)
