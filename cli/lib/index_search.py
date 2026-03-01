@@ -2,8 +2,7 @@ from collections import Counter
 import json
 import math
 from pickle import dump, load
-from pathlib import Path
-from utils import get_data_file, tokenize
+from utils.utils import get_data_file, tokenize, PROJECT_ROOT
 
 BM25_K1 = 1.5
 BM25_B = 0.75
@@ -35,8 +34,7 @@ class InvertedIndex:
         self.docmap = dict()
         self.term_frequencies = dict()
         self.doc_lengths = dict()
-        self.base_dir = Path(__file__).resolve().parent
-        self.cache_path = self.base_dir.parent / "cache"
+        self.cache_path = PROJECT_ROOT / "cache"
         self.index_path = self.cache_path / "index.pkl"
         self.map_path = self.cache_path / "docmap.pkl"
         self.freq_path = self.cache_path / "term_frequencies.pkl"

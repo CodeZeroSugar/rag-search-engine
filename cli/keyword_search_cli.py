@@ -2,8 +2,14 @@
 
 import argparse
 
-from indexing import InvertedIndex, bm25_idf_command, BM25_K1, bm25_tf_command, BM25_B
-from utils import tokenize
+from lib.index_search import (
+    InvertedIndex,
+    bm25_idf_command,
+    BM25_K1,
+    bm25_tf_command,
+    BM25_B,
+)
+from utils.utils import tokenize
 
 
 def main() -> None:

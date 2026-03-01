@@ -3,10 +3,11 @@ import string
 from pathlib import Path
 from nltk.stem import PorterStemmer
 
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
 
 def get_data_file(filename):
-    base_dir = Path(__file__).resolve().parent
-    data_path = base_dir.parent / "data" / filename
+    data_path = PROJECT_ROOT / "data" / filename
     return data_path
 
 
