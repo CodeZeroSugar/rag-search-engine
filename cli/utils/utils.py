@@ -11,6 +11,12 @@ def get_data_file(filename):
     return data_path
 
 
+def load_movies():
+    with open(get_data_file("movies.json"), "r") as f:
+        data = json.load(f)
+    return data["movies"]
+
+
 def get_stopwords():
     with open(get_data_file("stopwords.txt"), "r") as f:
         data = f.read()
