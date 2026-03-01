@@ -29,6 +29,14 @@ def verify_embeddings():
     )
 
 
+def embed_query_text(query):
+    model = SemanticSearch()
+    embedding = model.generate_embedding(query)
+    print(f"Query: {query}")
+    print(f"First 5 dimensions: {embedding[:5]}")
+    print(f"Shape: {embedding.shape}")
+
+
 def embed_text(text):
     model = SemanticSearch()
     embedding = model.generate_embedding(text)
