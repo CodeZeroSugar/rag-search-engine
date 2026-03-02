@@ -32,6 +32,15 @@ def main():
         "--limit", type=int, default=5, help="number of results to return"
     )
 
+    chunk_parser = subparsers.add_parser("chunk", help="chunk input text")
+    chunk_parser.add_argument("text", type=str, help="text to be chunked")
+    chunk_parser.add_argument(
+        "--chunk-size", type=int, default=200, help="amount of text per chunk"
+    )
+    chunk_parser.add_argument(
+        "--overlap", type=int, default=0, help="specify overlap for chunking"
+    )
+
     args = parser.parse_args()
 
     match args.command:
@@ -53,6 +62,25 @@ def main():
                 print(
                     f"{i}. {result['title']} (score: {result['score']})\n   {result['description']}"
                 )
+                i += 1
+
+        case "chunk":
+            split_text = args.text.split()
+            chunks = []
+            size = args.chunk_size
+            i = 0
+            while size < len(split_text):
+                chunks.append(" ".join(split_text[i:size]))
+                i = size - args.overlap
+                size = i + args.chunk_size
+
+            if i < len(split_text):
+                chunks.append(" ".join(split_text[i:]))
+
+            print(f"Chunking {len(args.text)} characters")
+            i = 1
+            for c in chunks:
+                print(f"{i}. {c}")
                 i += 1
 
         case _:
