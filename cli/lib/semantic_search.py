@@ -1,5 +1,6 @@
 import os
 import json
+import re
 import numpy as np
 
 os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
@@ -54,6 +55,37 @@ def embed_text(text):
     print(f"Text: {text}")
     print(f"First 3 dimensions: {embedding[:3]}")
     print(f"Dimensions: {embedding.shape[0]}")
+
+
+def overlap_chunk(words, overlap, chunk_size):
+    chunks = []
+    i = 0
+    while chunk_size < len(words):
+        chunks.append(" ".join(words[i:chunk_size]))
+        i = chunk_size - overlap
+        chunk_size = i + chunk_size
+
+    if i < len(words):
+        chunks.append(" ".join(words[i:]))
+
+    return chunks
+
+
+def semantic_chunk(text, max_chunk_size, overlap):
+    reg_words = re.split(r"(?<=[.!?])\s+", text)
+    chunks = []
+    chunk = []
+    i = 0
+    for i in range(len(reg_words)):
+        chunk.append(reg_words[i])
+        if len(chunk) == max_chunk_size:
+            chunks.append(" ".join(chunk))
+            chunk = []
+            i -= overlap
+    if len(chunk) != 0:
+        chunks.append(" ".join(chunk))
+
+    return chunks
 
 
 class SemanticSearch:

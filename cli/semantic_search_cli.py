@@ -7,6 +7,8 @@ from lib.semantic_search import (
     SemanticSearch,
     embed_query_text,
     embed_text,
+    overlap_chunk,
+    semantic_chunk,
     verify_embeddings,
     verify_model,
 )
@@ -41,6 +43,17 @@ def main():
         "--overlap", type=int, default=0, help="specify overlap for chunking"
     )
 
+    semantic_chunk_parser = subparsers.add_parser(
+        "semantic_chunk", help="chunk semantically"
+    )
+    semantic_chunk_parser.add_argument("text", type=str, help="text to be chunked")
+    semantic_chunk_parser.add_argument(
+        "--max-chunk-size", type=int, default=4, help="set max chunk size"
+    )
+    semantic_chunk_parser.add_argument(
+        "--overlap", type=int, default=0, help="specify overlap for chunking"
+    )
+
     args = parser.parse_args()
 
     match args.command:
@@ -66,18 +79,18 @@ def main():
 
         case "chunk":
             split_text = args.text.split()
-            chunks = []
-            size = args.chunk_size
-            i = 0
-            while size < len(split_text):
-                chunks.append(" ".join(split_text[i:size]))
-                i = size - args.overlap
-                size = i + args.chunk_size
-
-            if i < len(split_text):
-                chunks.append(" ".join(split_text[i:]))
+            chunks = overlap_chunk(split_text, args.overlap, args.chunk_size)
 
             print(f"Chunking {len(args.text)} characters")
+            i = 1
+            for c in chunks:
+                print(f"{i}. {c}")
+                i += 1
+
+        case "semantic_chunk":
+            chunks = semantic_chunk(args.text, args.max_chunk_size, args.overlap)
+
+            print(f"Semantically chunking {len(args.text)} characters")
             i = 1
             for c in chunks:
                 print(f"{i}. {c}")
