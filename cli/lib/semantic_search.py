@@ -76,13 +76,17 @@ def semantic_chunk(text, max_chunk_size, overlap):
     chunks = []
     chunk = []
     i = 0
-    for i in range(len(reg_words)):
+    while i < len(reg_words):
         chunk.append(reg_words[i])
         if len(chunk) == max_chunk_size:
             chunks.append(" ".join(chunk))
             chunk = []
+            i += 1
             i -= overlap
-    if len(chunk) != 0:
+        else:
+            i += 1
+
+    if len(chunk) > overlap:
         chunks.append(" ".join(chunk))
 
     return chunks
@@ -152,3 +156,35 @@ class SemanticSearch:
                 }
             )
         return top_results
+
+
+class ChunkedSemanticSearch(SemanticSearch):
+    def __init__(self, model_name="all-MiniLM-L6-v2") -> None:
+        super().__init__(model_name)
+        self.chunk_embeddings = None
+        self.chunk_metadata = None
+
+    def build_chunk_embeddings(self, documents):
+        self.documents = documents
+        for doc in self.documents:
+            self.document_map[doc["id"]] = doc
+        all_chunks = []
+        chunk_meta = []
+        for i in range(len(self.documents)):
+            if self.document_map[i]["description"] is None:
+                continue
+            chunks = semantic_chunk(self.document_map[id]["description"], 4, 1)
+            for j in range(len(chunks)):
+                all_chunks.append(chunks[j])
+                chunk_meta.append(
+                    {"movie_idx": i, "chunk_idx": j, "total_chunks": len(chunks)}
+                )
+
+        self.chunk_embeddings = self.model.encode(all_chunks)
+        self.chunk_metadata = chunk_meta
+        with open(PROJECT_ROOT / "cache" / "chunk_embeddings.npy", "wb") as f:
+            np.save(f, self.chunk_embeddings)
+        with open(PROJECT_ROOT / "cache" / "chunk_metadata.json", "w") as f:
+            json.dump(chunk_meta, f)
+
+        return self.chunk_embeddings
