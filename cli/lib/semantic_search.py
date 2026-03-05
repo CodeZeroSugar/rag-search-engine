@@ -1,9 +1,7 @@
-import os
 import json
 import re
 import numpy as np
 
-os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
 
 from utils.utils import PROJECT_ROOT, get_data_file
 from sentence_transformers import SentenceTransformer
@@ -171,16 +169,18 @@ class ChunkedSemanticSearch(SemanticSearch):
         all_chunks = []
         chunk_meta = []
         for i in range(len(self.documents)):
-            if self.document_map[i]["description"] is None:
+            if self.document_map[self.documents[i]["id"]]["description"] is None:
                 continue
-            chunks = semantic_chunk(self.document_map[id]["description"], 4, 1)
+            chunks = semantic_chunk(
+                self.document_map[self.documents[i]["id"]]["description"], 4, 1
+            )
             for j in range(len(chunks)):
                 all_chunks.append(chunks[j])
                 chunk_meta.append(
                     {"movie_idx": i, "chunk_idx": j, "total_chunks": len(chunks)}
                 )
 
-        self.chunk_embeddings = self.model.encode(all_chunks)
+        self.chunk_embeddings = self.model.encode(all_chunks, show_progress_bar=True)
         self.chunk_metadata = chunk_meta
         with open(PROJECT_ROOT / "cache" / "chunk_embeddings.npy", "wb") as f:
             np.save(f, self.chunk_embeddings)
@@ -188,3 +188,18 @@ class ChunkedSemanticSearch(SemanticSearch):
             json.dump(chunk_meta, f)
 
         return self.chunk_embeddings
+
+    def load_or_create_chunk_embeddings(self, documents: list[dict]) -> np.ndarray:
+        self.documents = documents
+        for doc in self.documents:
+            self.document_map[doc["id"]] = doc
+
+        embed_path = PROJECT_ROOT / "cache" / "chunk_embeddings.npy"
+        meta_path = PROJECT_ROOT / "cache" / "chunk_metadata.json"
+        if embed_path.exists() and meta_path.exists():
+            with open(embed_path, "rb") as f:
+                self.chunk_embeddings = np.load(f)
+            with open(meta_path, "r") as f:
+                self.chunk_metadata = json.load(f)
+            return self.chunk_embeddings
+        return self.build_chunk_embeddings(documents)
