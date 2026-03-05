@@ -10,5 +10,5 @@ wheels/
 .venv
 
 # Project files
-data/
-cache/
+./data/
+./cache/
