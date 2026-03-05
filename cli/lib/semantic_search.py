@@ -116,7 +116,7 @@ class SemanticSearch:
                 f"{self.document_map[doc_id]['title']}: {self.document_map[doc_id]['description']}"
             )
 
-        self.embeddings = self.model.encode(string_docs, show_progress_bar=True)
+        self.embeddings = self.model.encode(string_docs, show_progress_bar=False)
         with open(PROJECT_ROOT / "cache" / "movie_embeddings.npy", "wb") as f:
             np.save(f, self.embeddings)
         return self.embeddings
@@ -180,7 +180,7 @@ class ChunkedSemanticSearch(SemanticSearch):
                     {"movie_idx": i, "chunk_idx": j, "total_chunks": len(chunks)}
                 )
 
-        self.chunk_embeddings = self.model.encode(all_chunks, show_progress_bar=True)
+        self.chunk_embeddings = self.model.encode(all_chunks, show_progress_bar=False)
         self.chunk_metadata = chunk_meta
         with open(PROJECT_ROOT / "cache" / "chunk_embeddings.npy", "wb") as f:
             np.save(f, self.chunk_embeddings)
@@ -203,3 +203,41 @@ class ChunkedSemanticSearch(SemanticSearch):
                 self.chunk_metadata = json.load(f)
             return self.chunk_embeddings
         return self.build_chunk_embeddings(documents)
+
+    def search_chunks(self, query: str, limit=10):
+        query_embedding = self.generate_embedding(query)
+        chunk_scores = []
+        for i in range(len(self.chunk_embeddings)):
+            cos_similarity = cosine_similarity(
+                query_embedding, self.chunk_embeddings[i]
+            )
+            chunk_scores.append(
+                {
+                    "chunk_idx": self.chunk_metadata[i]["chunk_idx"],
+                    "movie_idx": self.chunk_metadata[i]["movie_idx"],
+                    "score": cos_similarity,
+                }
+            )
+        movie_idx_scores = dict()
+        for score in chunk_scores:
+            if (
+                score["movie_idx"] not in movie_idx_scores
+                or score["score"] > movie_idx_scores[score["movie_idx"]]
+            ):
+                movie_idx_scores[score["movie_idx"]] = score["score"]
+        sorted_scores = sorted(
+            movie_idx_scores.items(), key=lambda x: x[1], reverse=True
+        )
+        limit_scores = sorted_scores[:limit]
+        final_results = []
+        for score in limit_scores:
+            final_results.append(
+                {
+                    "id": self.documents[score[0]]["id"],
+                    "title": self.documents[score[0]]["title"],
+                    "document": self.documents[score[0]]["description"][:100],
+                    "score": round(score[1], 2),
+                    "metadata": self.documents[score[0]] or {},
+                }
+            )
+        return final_results

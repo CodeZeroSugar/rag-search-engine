@@ -14,6 +14,10 @@ from lib.semantic_search import (
     verify_model,
 )
 
+import transformers
+
+transformers.logging.set_verbosity_error()
+
 
 def main():
     parser = argparse.ArgumentParser(description="Semantic Search CLI")
@@ -56,6 +60,14 @@ def main():
     )
 
     subparsers.add_parser("embed_chunks", help="embed chunks from a provided text")
+
+    search_chunked_parser = subparsers.add_parser(
+        "search_chunked", help="semantically search with chunking"
+    )
+    search_chunked_parser.add_argument("query", type=str, help="query text")
+    search_chunked_parser.add_argument(
+        "--limit", type=int, default=5, help="number of results to return"
+    )
 
     args = parser.parse_args()
 
@@ -105,6 +117,18 @@ def main():
             embeddings = chunker.load_or_create_chunk_embeddings(movies)
 
             print(f"Generated {len(embeddings)} chunked embeddings")
+
+        case "search_chunked":
+            movies = load_movies()
+            chunker = ChunkedSemanticSearch()
+            embeddings = chunker.load_or_create_chunk_embeddings(movies)
+            results = chunker.search_chunks(args.query, args.limit)
+
+            i = 1
+            for result in results:
+                print(f"\n{i}. {result['title']} (score: {result['score']:.4f})")
+                print(f"    {result['document']}...")
+                i += 1
 
         case _:
             parser.print_help()
