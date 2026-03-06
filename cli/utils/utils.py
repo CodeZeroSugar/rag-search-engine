@@ -16,7 +16,9 @@ def clean_text(text):
         sentences = [text]
     chunk_list = []
     for s in sentences:
-        chunk_list.append(s.strip())
+        check_s = s.strip()
+        if check_s != "":
+            chunk_list.append(s.strip())
     return chunk_list
 
 

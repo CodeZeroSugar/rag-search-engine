@@ -104,12 +104,12 @@ def main():
 
         case "semantic_chunk":
             chunks = semantic_chunk(args.text, args.max_chunk_size, args.overlap)
-
-            print(f"Semantically chunking {len(args.text)} characters")
-            i = 1
-            for c in chunks:
-                print(f"{i}. {c}")
-                i += 1
+            if len(chunks) > 0:
+                print(f"Semantically chunking {len(args.text)} characters")
+                i = 1
+                for c in chunks:
+                    print(f"{i}. {c}")
+                    i += 1
 
         case "embed_chunks":
             movies = load_movies()

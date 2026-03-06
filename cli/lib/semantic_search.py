@@ -71,12 +71,13 @@ def overlap_chunk(words, overlap, chunk_size):
 
 def semantic_chunk(text, max_chunk_size, overlap):
     chunks = clean_text(text)
+    final_chunks = []
     chunk = []
     i = 0
     while i < len(chunks):
         chunk.append(chunks[i])
         if len(chunk) == max_chunk_size:
-            chunks.append(" ".join(chunk))
+            final_chunks.append(" ".join(chunk))
             chunk = []
             i += 1
             i -= overlap
@@ -84,9 +85,9 @@ def semantic_chunk(text, max_chunk_size, overlap):
             i += 1
 
     if len(chunk) > overlap:
-        chunks.append(" ".join(chunk))
+        final_chunks.append(" ".join(chunk))
 
-    return chunks
+    return final_chunks
 
 
 class SemanticSearch:
