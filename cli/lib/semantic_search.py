@@ -3,7 +3,7 @@ import re
 import numpy as np
 
 
-from utils.utils import PROJECT_ROOT, get_data_file
+from utils.utils import PROJECT_ROOT, get_data_file, clean_text
 from sentence_transformers import SentenceTransformer
 
 
@@ -70,12 +70,11 @@ def overlap_chunk(words, overlap, chunk_size):
 
 
 def semantic_chunk(text, max_chunk_size, overlap):
-    reg_words = re.split(r"(?<=[.!?])\s+", text)
-    chunks = []
+    chunks = clean_text(text)
     chunk = []
     i = 0
-    while i < len(reg_words):
-        chunk.append(reg_words[i])
+    while i < len(chunks):
+        chunk.append(chunks[i])
         if len(chunk) == max_chunk_size:
             chunks.append(" ".join(chunk))
             chunk = []

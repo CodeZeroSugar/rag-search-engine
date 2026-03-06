@@ -1,9 +1,23 @@
 import json
 import string
+import re
 from pathlib import Path
 from nltk.stem import PorterStemmer
 
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+
+def clean_text(text):
+    strip_text = text.strip()
+    if strip_text.isspace():
+        return []
+    sentences = re.split(r"(?<=[.!?])\s+", strip_text.strip())
+    if len(sentences) == 1 and not sentences[0].endswith((".", "!", "?")):
+        sentences = [text]
+    chunk_list = []
+    for s in sentences:
+        chunk_list.append(s.strip())
+    return chunk_list
 
 
 def get_data_file(filename):
