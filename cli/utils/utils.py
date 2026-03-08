@@ -7,6 +7,20 @@ from nltk.stem import PorterStemmer
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 
 
+def normalize(scores):
+    if len(scores) == 0:
+        return
+    if min(scores) == max(scores):
+        for score in scores:
+            print(1.0)
+        return
+    min_score = min(scores)
+    max_score = max(scores)
+    for score in scores:
+        normalized = (score - min_score) / (max_score - min_score)
+        print(f"* {normalized:.4f}")
+
+
 def clean_text(text):
     strip_text = text.strip()
     if strip_text.isspace():
