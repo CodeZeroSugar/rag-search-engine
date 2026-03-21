@@ -1,5 +1,6 @@
 import os
 
+from cli.utils.utils import normalize
 from index_search import InvertedIndex
 from semantic_search import ChunkedSemanticSearch
 
@@ -20,7 +21,21 @@ class HybridSearch:
         return self.idx.bm25_search(query, limit)
 
     def weighted_search(self, query, alpha, limit=5):
-        raise NotImplementedError("Weighted hybrid search is not implemented yet.")
+        bm25_results = self._bm25_search(query, limit * 500)
+        semantic_search_results = self.semantic_search.search(query, limit * 500)
+        bm25_scores = []
+        for item in bm25_results:
+            bm25_scores.append(item[1])
+        normalized_bm25_scores = normalize(bm25_scores)
+
+        semantic_scores = []
+        for item in semantic_search_results:
+            semantic_scores.append(item["score"])
+        normalized_semantic_scores = normalize(semantic_scores)
+
+        doc_dict = dict()
+        for i in range(len(bm25_results)):
+            doc_dict[bm25_results[i][0]] = self.documents[bm25_results[i][0]]
 
     def rrf_search(self, query, k, limit=10):
         raise NotImplementedError("RRF hybrid search is not implemented yet.")

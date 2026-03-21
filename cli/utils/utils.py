@@ -16,9 +16,12 @@ def normalize(scores):
         return
     min_score = min(scores)
     max_score = max(scores)
+
+    normalized_scores = []
     for score in scores:
-        normalized = (score - min_score) / (max_score - min_score)
-        print(f"* {normalized:.4f}")
+        normalized_scores.append((score - min_score) / (max_score - min_score))
+
+    return normalized_scores
 
 
 def clean_text(text):
